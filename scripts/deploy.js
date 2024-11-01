@@ -6,9 +6,9 @@ async function main() {
     const aidDistribution = await AidDistribution.deploy();
   
     // Wait for the deployment to be completed
-    await aidDistribution.deployed();
+    // await aidDistribution.deployed();
   
-    console.log("AidDistribution deployed to:", aidDistribution.address);
+    console.log("AidDistribution deployed to:", AidDistribution.address);
   }
   
   // Execute the main function

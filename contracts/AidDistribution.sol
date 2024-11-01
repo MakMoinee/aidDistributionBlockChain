@@ -3,6 +3,7 @@ pragma solidity ^0.8.27;
 
 contract AidDistribution {
     struct AidRecord {
+        uint256 aidID;
         string recipient;
         uint256 amount;
         string purpose;
@@ -16,7 +17,10 @@ contract AidDistribution {
     AidRecord[] public aidRecords;
     Record[] mRecords;
 
+    mapping(uint256 => uint256) private aidFunds; // Maps aidID to total funds received
+
     event AidRecordAdded(
+        uint256 aidID,
         string recipient,
         uint256 amount,
         string purpose,
@@ -26,6 +30,7 @@ contract AidDistribution {
     event ShowNames(Record[] srecords);
 
     function addAidRecord(
+        uint aidID,
         string memory recipient,
         uint256 amount,
         string memory purpose
@@ -34,8 +39,10 @@ contract AidDistribution {
         require(amount > 0, "Amount must be greater than zero");
         require(bytes(purpose).length > 0, "Purpose cannot be empty");
 
+        // Add a new aid record
         aidRecords.push(
             AidRecord({
+                aidID: aidID,
                 recipient: recipient,
                 amount: amount,
                 purpose: purpose,
@@ -43,9 +50,12 @@ contract AidDistribution {
             })
         );
 
+        // Update total funds for the given aidID
+        aidFunds[aidID] += amount;
+
         mRecords.push(Record({name: recipient}));
 
-        emit AidRecordAdded(recipient, amount, purpose, block.timestamp);
+        emit AidRecordAdded(aidID, recipient, amount, purpose, block.timestamp);
     }
 
     function getAllRecords() public view returns (AidRecord[] memory) {
@@ -54,5 +64,9 @@ contract AidDistribution {
 
     function getAllNames() public {
         emit ShowNames(mRecords);
+    }
+
+    function getFundsForAidID(uint256 aidID) public view returns (uint256) {
+        return aidFunds[aidID];
     }
 }
