@@ -10,14 +10,9 @@ contract AidDistribution {
         uint256 timestamp;
     }
 
-    struct Record {
-        string name;
-    }
-
     AidRecord[] public aidRecords;
-    Record[] mRecords;
-
     mapping(uint256 => uint256) private aidFunds; // Maps aidID to total funds received
+    string private constant AUTH_UUID = "d8cf7845-403b-40fb-a7cd-0bdbdda43b69";
 
     event AidRecordAdded(
         uint256 aidID,
@@ -26,20 +21,20 @@ contract AidDistribution {
         string purpose,
         uint256 timestamp
     );
+    event DonationReceived(uint256 aidID, address sender, uint256 amount);
+    event FundsReceived(uint256 aidID, uint256 amount, address receiver);
 
-    event ShowNames(Record[] srecords);
-
+    // Add a new aid record
     function addAidRecord(
-        uint aidID,
+        uint256 aidID,
         string memory recipient,
         uint256 amount,
         string memory purpose
-    ) public {
+    ) public payable  {
         require(bytes(recipient).length > 0, "Recipient cannot be empty");
         require(amount > 0, "Amount must be greater than zero");
         require(bytes(purpose).length > 0, "Purpose cannot be empty");
 
-        // Add a new aid record
         aidRecords.push(
             AidRecord({
                 aidID: aidID,
@@ -50,20 +45,42 @@ contract AidDistribution {
             })
         );
 
-        // Update total funds for the given aidID
         aidFunds[aidID] += amount;
-
-        mRecords.push(Record({name: recipient}));
-
+        emit DonationReceived(aidID, msg.sender, msg.value);
         emit AidRecordAdded(aidID, recipient, amount, purpose, block.timestamp);
+    }
+
+    // Function to receive funds for a specific aid request
+    function receiveFunds(
+        uint256 aidID,
+        uint256 amount,
+        string memory uuid,
+        address receiver
+    ) public payable {
+        require(
+            keccak256(abi.encodePacked(uuid)) ==
+                keccak256(abi.encodePacked(AUTH_UUID)),
+            "Unauthorized: Invalid UUID"
+        );
+        require(aidFunds[aidID] >= amount, "Insufficient funds for this aidID");
+        require(receiver != address(0), "Invalid receiver address");
+
+        // Transfer the funds to the receiver
+        (bool success, ) = receiver.call{value: amount}("");
+        require(success, "Transfer to receiver failed");
+
+        // Deduct the amount from the aidID's total funds
+        aidFunds[aidID] -= amount;
+
+        emit FundsReceived(aidID, amount, receiver);
     }
 
     function getAllRecords() public view returns (AidRecord[] memory) {
         return aidRecords;
     }
 
-    function getAllNames() public {
-        emit ShowNames(mRecords);
+     function getAidFunds() public view returns (AidRecord[] memory) {
+        return aidRecords;
     }
 
     function getFundsForAidID(uint256 aidID) public view returns (uint256) {
