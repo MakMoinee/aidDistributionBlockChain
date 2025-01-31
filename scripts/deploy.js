@@ -8,7 +8,7 @@ async function main() {
     // Wait for the deployment to be completed
     // await aidDistribution.deployed();
   
-    console.log("AidDistribution deployed to:", AidDistribution.address);
+    console.log("AidDistribution deployed to:", aidDistribution.address);
   }
   
   // Execute the main function

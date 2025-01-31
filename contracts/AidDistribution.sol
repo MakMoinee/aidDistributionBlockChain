@@ -30,7 +30,7 @@ contract AidDistribution {
         string memory recipient,
         uint256 amount,
         string memory purpose
-    ) public payable  {
+    ) public payable {
         require(bytes(recipient).length > 0, "Recipient cannot be empty");
         require(amount > 0, "Amount must be greater than zero");
         require(bytes(purpose).length > 0, "Purpose cannot be empty");
@@ -79,11 +79,13 @@ contract AidDistribution {
         return aidRecords;
     }
 
-     function getAidFunds() public view returns (AidRecord[] memory) {
-        return aidRecords;
-    }
-
     function getFundsForAidID(uint256 aidID) public view returns (uint256) {
         return aidFunds[aidID];
+    }
+
+    function getBalance() public view returns (uint256 totalBalance) {
+        for (uint256 i = 0; i < aidRecords.length; i++) {
+            totalBalance += aidFunds[aidRecords[i].aidID];
+        }
     }
 }
